@@ -18,10 +18,10 @@
 local EXTMARK_NS = vim.api.nvim_create_namespace("markdown-spoilers")
 local HL_NAME = "MarkdownSpoilers"
 
-local _theme = "#20385a"
+local _spoiler_color = "#20385a"
 vim.api.nvim_set_hl(0, HL_NAME, {
-	bg = _theme,
-	fg = _theme,
+	bg = _spoiler_color,
+	fg = _spoiler_color,
 })
 
 local M = {}
