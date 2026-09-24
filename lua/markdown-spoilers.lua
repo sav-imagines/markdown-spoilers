@@ -18,20 +18,41 @@
 local EXTMARK_NS = vim.api.nvim_create_namespace("markdown-spoilers")
 local HL_NAME = "MarkdownSpoilers"
 
-local M = {}
+local M = {
+	show_all = false, ---@type boolean
+}
+
+function M.toggle_spoilers()
+	M.show_all = not M.show_all
+	M.update_spoilers()
+end
+
+function M.show_spoilers()
+	M.show_all = true
+	M.update_spoilers()
+end
+
+function M.hide_spoilers()
+	M.show_all = false
+	M.update_spoilers()
+end
 
 function M.update_spoilers()
-	local cursor_pos = vim.api.nvim_win_get_cursor(0)
 	local current_buf_idx = vim.api.nvim_get_current_buf()
 
 	-- remove previous highlights
 	vim.api.nvim_buf_clear_namespace(current_buf_idx, EXTMARK_NS, 0, -1)
 
+	if M.show_all then
+		return
+	end
+
+	local cursor_pos = vim.api.nvim_win_get_cursor(0)
 	local lines = vim.api.nvim_buf_get_lines(current_buf_idx, 0, -1, false)
 
 	for rowIdx, line in pairs(lines) do
 		-- positions with '||' in line
-		local comment_pairs = line:find_match_pairs("||")
+		local comment_pairs = line:_find_match_pairs("||")
 
 		local is_on_line = rowIdx == cursor_pos[1]
 		for _, pair in ipairs(comment_pairs) do
@@ -57,7 +78,7 @@ end
 ---@param str string
 ---@param match string
 ---@return PosList
-function string.find_match_pairs(str, match)
+function string._find_match_pairs(str, match)
 	local matches_count = 0
 	local match_len = #match
 
@@ -82,6 +103,13 @@ function string.find_match_pairs(str, match)
 	return matches
 end
 
+function M._register_commands()
+	local current_buf_idx = vim.api.nvim_get_current_buf()
+	vim.api.nvim_buf_create_user_command(current_buf_idx, "ShowSpoilers", M.show_spoilers)
+	vim.api.nvim_buf_create_user_command(current_buf_idx, "HideSpoilers", M.hide_spoilers)
+	vim.api.nvim_buf_create_user_command(current_buf_idx, "ToggleSpoilers", M.toggle_spoilers)
+end
+
 ---@param opts table<string>|nil
 function M.setup(opts)
 	-- fallback to empty table
@@ -97,6 +125,11 @@ function M.setup(opts)
 	vim.api.nvim_create_autocmd({ "BufEnter", "InsertLeave", "CursorMoved" }, {
 		pattern = { "*.md" },
 		callback = M.update_spoilers,
+	})
+
+	vim.api.nvim_create_autocmd("BufEnter", {
+		pattern = { "*.md" },
+		callback = M._register_commands,
 	})
 end
 
