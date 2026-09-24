@@ -9,7 +9,7 @@ To reveal a spoiler, simply hover over it:
 {
   "sav-imagines/markdown-spoilers",
   config = {
-    color = "#ff00ff", -- put whatever color you want
+    color = "#9553a5", -- put whatever color you want
   },
 }
 ```
