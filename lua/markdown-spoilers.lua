@@ -18,18 +18,7 @@
 local EXTMARK_NS = vim.api.nvim_create_namespace("markdown-spoilers")
 local HL_NAME = "MarkdownSpoilers"
 
-local _spoiler_color = "#20385a"
-vim.api.nvim_set_hl(0, HL_NAME, {
-	bg = _spoiler_color,
-	fg = _spoiler_color,
-})
-
 local M = {}
-
--- Function to print the hello message
-function M.say_hello()
-	vim.print("Hello")
-end
 
 function M.update_spoilers()
 	local cursor_pos = vim.api.nvim_win_get_cursor(0)
@@ -101,11 +90,17 @@ function string.find_match_indeces(str, match)
 	return matches
 end
 
--- Function to set up the plugin
 ---@param opts table<string,function>|nil
 function M.setup(opts)
-	-- Merge user options with defaults
+	-- fallback to empty table
+
 	opts = opts or {}
+	opts._color = opts._color or "#6890d1"
+
+	vim.api.nvim_set_hl(0, HL_NAME, {
+		bg = opts._color,
+		fg = opts._color,
+	})
 
 	-- on any of these, update the highlights
 	vim.api.nvim_create_autocmd({ "BufEnter", "InsertLeave", "CursorMoved" }, {
@@ -116,12 +111,6 @@ function M.setup(opts)
 	-- Set up a key mapping
 	-- Use opts.keymap if provided, otherwise default to '<leader>hw'
 	local keymap = opts.keymap or "<leader>hw"
-
-	-- Create the keymap
-	vim.keymap.set("n", keymap, M.say_hello, {
-		desc = "Say hello from our plugin",
-		silent = true, -- Prevents the command from being echoed in the command line
-	})
 end
 
 -- Return the module
