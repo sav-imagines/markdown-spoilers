@@ -70,10 +70,12 @@ function M.setup(opts)
 	-- Create the user command
 	vim.api.nvim_create_user_command("HelloWorld", M.say_hello, {})
 
-	vim.api.nvim_create_autocmd({ "BufEnter", "InsertLeave" }, {
-		pattern = { "*.md", "*" },
+	vim.api.nvim_create_autocmd({ "BufEnter", "InsertLeave", "CursorMoved" }, {
+		pattern = { "*.md", "*", "*.md" },
 		callback = function(_)
+			local cursor_pos = vim.api.nvim_win_get_cursor(0)
 			local current_buf_idx = vim.api.nvim_get_current_buf()
+			vim.api.nvim_buf_clear_namespace(current_buf_idx, EXTMARK_NS, 0, -1)
 			local lines = vim.api.nvim_buf_get_lines(current_buf_idx, 0, -1, false)
 			local comments = {}
 			for i, line in pairs(lines) do
@@ -83,8 +85,6 @@ function M.setup(opts)
 				local comments_in_line = line:find_match_indeces("||")
 				local comment_count = #comments_in_line
 
-				-- assert(comment_count)
-
 				-- round down to nearest even number
 				if comment_count % 2 ~= 0 then
 					comment_count = comment_count - 1
@@ -92,17 +92,23 @@ function M.setup(opts)
 
 				if comment_count > 0 then
 					for j = 1, comment_count, 2 do
-						-- print(comments_in_line[j])
-						vim.api.nvim_buf_set_extmark(current_buf_idx, EXTMARK_NS, i - 1, comments_in_line[j] - 1, {
-							end_line = i - 1,
-							end_col = comments_in_line[j + 1] + 1,
-							hl_group = HL_NAME,
-						})
-						table.append(comments, {
-							line_idx = i,
-							start_idx = comments_in_line[j],
-							end_idx = comments_in_line[(j + 1)],
-						})
+						local start_col = comments_in_line[j] - 1
+						local end_col = comments_in_line[j + 1] + 1
+						local is_hovered = i == cursor_pos[1]
+							and (start_col <= cursor_pos[2] and cursor_pos[2] <= end_col)
+
+						if not is_hovered then
+							vim.api.nvim_buf_set_extmark(current_buf_idx, EXTMARK_NS, i - 1, comments_in_line[j] - 1, {
+								end_line = i - 1,
+								end_col = comments_in_line[j + 1] + 1,
+								hl_group = HL_NAME,
+							})
+							table.append(comments, {
+								line_idx = i,
+								start_idx = comments_in_line[j],
+								end_idx = comments_in_line[(j + 1)],
+							})
+						end
 					end
 				end
 			end
