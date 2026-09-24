@@ -30,10 +30,6 @@ function M.update_spoilers()
 	local lines = vim.api.nvim_buf_get_lines(current_buf_idx, 0, -1, false)
 
 	for rowIdx, line in pairs(lines) do
-		if not line then
-			break
-		end
-
 		-- positions with '||' in line
 		local comment_pairs = line:find_match_pairs("||")
 
@@ -43,9 +39,9 @@ function M.update_spoilers()
 
 			local line_number = rowIdx - 1 -- rowIdx is 0-indexed
 			if not is_hovered then
-				vim.api.nvim_buf_set_extmark(current_buf_idx, EXTMARK_NS, line_number, pair.start_pos - 1, {
+				vim.api.nvim_buf_set_extmark(current_buf_idx, EXTMARK_NS, line_number, pair.start_pos, {
 					end_line = line_number,
-					end_col = pair.end_pos + 1, -- include final character
+					end_col = pair.end_pos, -- include final character
 					hl_group = HL_NAME,
 				})
 			end
@@ -73,8 +69,11 @@ function string.find_match_pairs(str, match)
 		if string.sub(str, i, i + (#match - 1)) == match then
 			matches_count = matches_count + 1
 			if last_found then
-				local pos = { start_pos = last_found, end_pos = i } ---@type Position
+				local pos = { start_pos = last_found - 1, end_pos = i + 1 } ---@type Position
 				table.insert(matches, pos)
+				last_found = nil
+			else
+				last_found = i
 			end
 
 			i = i + match_len -- skip ahead after match
