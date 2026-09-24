@@ -90,10 +90,9 @@ function string.find_match_indeces(str, match)
 	return matches
 end
 
----@param opts table<string,function>|nil
+---@param opts table<string>|nil
 function M.setup(opts)
 	-- fallback to empty table
-
 	opts = opts or {}
 	opts._color = opts._color or "#6890d1"
 
@@ -107,10 +106,6 @@ function M.setup(opts)
 		pattern = { "*.md" },
 		callback = M.update_spoilers,
 	})
-
-	-- Set up a key mapping
-	-- Use opts.keymap if provided, otherwise default to '<leader>hw'
-	local keymap = opts.keymap or "<leader>hw"
 end
 
 -- Return the module
