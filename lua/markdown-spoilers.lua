@@ -94,11 +94,11 @@ end
 function M.setup(opts)
 	-- fallback to empty table
 	opts = opts or {}
-	opts._color = opts._color or "#6890d1"
+	opts.color = opts.color or "#6890d1"
 
 	vim.api.nvim_set_hl(0, HL_NAME, {
-		bg = opts._color,
-		fg = opts._color,
+		bg = opts.color,
+		fg = opts.color,
 	})
 
 	-- on any of these, update the highlights
