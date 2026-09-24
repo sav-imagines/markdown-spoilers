@@ -29,9 +29,8 @@ function M.update_spoilers()
 
 	local lines = vim.api.nvim_buf_get_lines(current_buf_idx, 0, -1, false)
 
-	local comments = {}
 	for i, line in pairs(lines) do
-		if line == nil then
+		if not line then
 			break
 		end
 		-- positions with '||' in line
@@ -55,19 +54,10 @@ function M.update_spoilers()
 						end_col = comments_in_line[j + 1] + 1,
 						hl_group = HL_NAME,
 					})
-					table.append(comments, {
-						line_idx = i,
-						start_idx = comments_in_line[j],
-						end_idx = comments_in_line[(j + 1)],
-					})
 				end
 			end
 		end
 	end
-end
-
-function table.append(t, value)
-	t[#t + 1] = value
 end
 
 ---@param str string
@@ -83,8 +73,9 @@ function string.find_match_indeces(str, match)
 	for i = 1, #str - 1 do
 		if string.sub(str, i, i + (#match - 1)) == match then
 			matches_count = matches_count + 1
-			table.append(matches, i)
-			i = i + match_len
+			table.insert(matches, i)
+
+			i = i + match_len -- skip ahead after match
 		end
 	end
 	return matches
