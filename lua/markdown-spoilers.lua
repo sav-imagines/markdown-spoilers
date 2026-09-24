@@ -18,10 +18,10 @@
 local EXTMARK_NS = vim.api.nvim_create_namespace("markdown-spoilers")
 local HL_NAME = "MarkdownSpoilers"
 
-local _theme = vim.api.nvim_get_hl(0, { name = "Normal" })
+local _theme = "#20385a"
 vim.api.nvim_set_hl(0, HL_NAME, {
-	bg = _theme.bg,
-	fg = _theme.bg,
+	bg = _theme,
+	fg = _theme,
 })
 
 local M = {}
@@ -70,8 +70,8 @@ function M.setup(opts)
 	-- Create the user command
 	vim.api.nvim_create_user_command("HelloWorld", M.say_hello, {})
 
-	vim.api.nvim_create_autocmd("BufEnter", {
-		pattern = { "*.md" },
+	vim.api.nvim_create_autocmd({ "BufEnter", "InsertLeave" }, {
+		pattern = { "*.md", "*" },
 		callback = function(_)
 			local current_buf_idx = vim.api.nvim_get_current_buf()
 			local lines = vim.api.nvim_buf_get_lines(current_buf_idx, 0, -1, false)
@@ -89,17 +89,13 @@ function M.setup(opts)
 				if comment_count % 2 ~= 0 then
 					comment_count = comment_count - 1
 				end
-				for i = 1, #comments_in_line do
-					print(comments_in_line[i])
-				end
-				print("====")
 
 				if comment_count > 0 then
 					for j = 1, comment_count, 2 do
 						-- print(comments_in_line[j])
-						vim.api.nvim_buf_set_extmark(current_buf_idx, EXTMARK_NS, i - 1, comments_in_line[j], {
+						vim.api.nvim_buf_set_extmark(current_buf_idx, EXTMARK_NS, i - 1, comments_in_line[j] - 1, {
 							end_line = i - 1,
-							end_col = comments_in_line[j + 1],
+							end_col = comments_in_line[j + 1] + 1,
 							hl_group = HL_NAME,
 						})
 						table.append(comments, {
