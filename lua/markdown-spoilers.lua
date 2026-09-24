@@ -29,51 +29,53 @@ function M.update_spoilers()
 
 	local lines = vim.api.nvim_buf_get_lines(current_buf_idx, 0, -1, false)
 
-	for i, line in pairs(lines) do
+	for rowIdx, line in pairs(lines) do
 		if not line then
 			break
 		end
+
 		-- positions with '||' in line
-		local comments_in_line = line:find_match_indeces("||")
-		local comment_count = #comments_in_line
+		local comment_pairs = line:find_match_pairs("||")
 
-		-- round down to nearest even number (ignore unclosed final ones, no multi-line spoilers)
-		if comment_count % 2 ~= 0 then
-			comment_count = comment_count - 1
-		end
+		local is_on_line = rowIdx == cursor_pos[1]
+		for _, pair in ipairs(comment_pairs) do
+			local is_hovered = is_on_line and (pair.start_pos <= cursor_pos[2] and cursor_pos[2] < pair.end_pos)
 
-		if comment_count > 0 then
-			for j = 1, comment_count, 2 do
-				local start_col = comments_in_line[j] - 1
-				local end_col = comments_in_line[j + 1] + 1
-				local is_hovered = i == cursor_pos[1] and (start_col <= cursor_pos[2] and cursor_pos[2] < end_col)
-
-				if not is_hovered then
-					vim.api.nvim_buf_set_extmark(current_buf_idx, EXTMARK_NS, i - 1, comments_in_line[j] - 1, {
-						end_line = i - 1,
-						end_col = comments_in_line[j + 1] + 1,
-						hl_group = HL_NAME,
-					})
-				end
+			local line_number = rowIdx - 1 -- rowIdx is 0-indexed
+			if not is_hovered then
+				vim.api.nvim_buf_set_extmark(current_buf_idx, EXTMARK_NS, line_number, pair.start_pos - 1, {
+					end_line = line_number,
+					end_col = pair.end_pos + 1, -- include final character
+					hl_group = HL_NAME,
+				})
 			end
 		end
 	end
 end
 
+---@class Position
+---@field start_pos number
+---@field end_pos number
+---@alias PosList Position[]
+
 ---@param str string
 ---@param match string
----@return table<integer, integer>
-function string.find_match_indeces(str, match)
+---@return PosList
+function string.find_match_pairs(str, match)
 	local matches_count = 0
 	local match_len = #match
 
-	---@type table<integer, integer>
+	---@type PosList
 	local matches = {}
 
+	local last_found = nil ---@type integer|nil
 	for i = 1, #str - 1 do
 		if string.sub(str, i, i + (#match - 1)) == match then
 			matches_count = matches_count + 1
-			table.insert(matches, i)
+			if last_found then
+				local pos = { start_pos = last_found, end_pos = i } ---@type Position
+				table.insert(matches, pos)
+			end
 
 			i = i + match_len -- skip ahead after match
 		end
