@@ -16,7 +16,8 @@
 -- along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 local EXTMARK_NS = vim.api.nvim_create_namespace("markdown-spoilers")
-local HL_NAME = "MarkdownSpoilers"
+local HL_NAME_SHOW = "MarkdownSpoilersShow"
+local HL_NAME_HIDE = "MarkdownSpoilersHide"
 
 local M = {
 	show_all = false, ---@type boolean
@@ -43,10 +44,6 @@ function M.update_spoilers()
 	-- remove previous highlights
 	vim.api.nvim_buf_clear_namespace(current_buf_idx, EXTMARK_NS, 0, -1)
 
-	if M.show_all then
-		return
-	end
-
 	local cursor_pos = vim.api.nvim_win_get_cursor(0)
 	local lines = vim.api.nvim_buf_get_lines(current_buf_idx, 0, -1, false)
 
@@ -59,13 +56,17 @@ function M.update_spoilers()
 			local is_hovered = is_on_line and (pair.start_pos <= cursor_pos[2] and cursor_pos[2] < pair.end_pos)
 
 			local line_number = rowIdx - 1 -- rowIdx is 0-indexed
-			if not is_hovered then
-				vim.api.nvim_buf_set_extmark(current_buf_idx, EXTMARK_NS, line_number, pair.start_pos, {
-					end_line = line_number,
-					end_col = pair.end_pos, -- include final character
-					hl_group = HL_NAME,
-				})
+			local HL_GROUP
+			if is_hovered or M.show_all then
+				HL_GROUP = HL_NAME_SHOW
+			else
+				HL_GROUP = HL_NAME_HIDE
 			end
+			vim.api.nvim_buf_set_extmark(current_buf_idx, EXTMARK_NS, line_number, pair.start_pos, {
+				end_line = line_number,
+				end_col = pair.end_pos, -- include final character
+				hl_group = HL_GROUP,
+			})
 		end
 	end
 end
@@ -116,7 +117,12 @@ function M.setup(opts)
 	opts = opts or {}
 	opts.color = opts.color or "#6890d1"
 
-	vim.api.nvim_set_hl(0, HL_NAME, {
+	vim.api.nvim_set_hl(0, HL_NAME_SHOW, {
+		bg = "#885588",
+		--fg = "#885588",
+	})
+
+	vim.api.nvim_set_hl(0, HL_NAME_HIDE, {
 		bg = opts.color,
 		fg = opts.color,
 	})
