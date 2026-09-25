@@ -105,9 +105,9 @@ end
 
 function M._register_commands()
 	local current_buf_idx = vim.api.nvim_get_current_buf()
-	vim.api.nvim_buf_create_user_command(current_buf_idx, "ShowSpoilers", M.show_spoilers)
-	vim.api.nvim_buf_create_user_command(current_buf_idx, "HideSpoilers", M.hide_spoilers)
-	vim.api.nvim_buf_create_user_command(current_buf_idx, "ToggleSpoilers", M.toggle_spoilers)
+	vim.api.nvim_buf_create_user_command(current_buf_idx, "ShowSpoilers", M.show_spoilers, {})
+	vim.api.nvim_buf_create_user_command(current_buf_idx, "HideSpoilers", M.hide_spoilers, {})
+	vim.api.nvim_buf_create_user_command(current_buf_idx, "ToggleSpoilers", M.toggle_spoilers, {})
 end
 
 ---@param opts table<string>|nil
