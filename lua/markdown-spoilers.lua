@@ -118,7 +118,7 @@ function M.setup(opts)
 	opts.color = opts.color or "#6890d1"
 
 	vim.api.nvim_set_hl(0, HL_NAME_SHOW, {
-		bg = "#885588",
+		bg = opts.color,
 		--fg = "#885588",
 	})
 
